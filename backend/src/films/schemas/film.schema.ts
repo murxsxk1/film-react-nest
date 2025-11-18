@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 export interface ScheduleDocument extends Document {
   id: string;
@@ -26,7 +26,7 @@ export interface FilmDocument extends Document {
 export const ScheduleSchema = new mongoose.Schema({
   id: { type: String, required: true },
   daytime: { type: String, required: true },
-  hall: { type: Number, required: true }, 
+  hall: { type: Number, required: true },
   rows: { type: Number, required: true },
   seats: { type: Number, required: true },
   price: { type: Number, required: true },

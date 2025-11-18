@@ -20,3 +20,13 @@ export class ScheduleDto {
   price: number;
   taken: string[];
 }
+
+export class FilmsResponseDto {
+  total: number;
+  items: FilmDto[];
+}
+
+export class ScheduleResponseDto {
+  total: number;
+  items: ScheduleDto[];
+}

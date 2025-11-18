@@ -1,8 +1,12 @@
-import { Injectable } from "@nestjs/common";
-import { InjectModel } from "@nestjs/mongoose";
-import { Model } from "mongoose";
-import { FilmDto, ScheduleDto } from "src/films/dto/films.dto";
-import { FilmDocument, FilmModelName, ScheduleDocument } from "src/films/schemas/film.schema";
+import { Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { FilmDto, ScheduleDto } from 'src/films/dto/films.dto';
+import {
+  FilmDocument,
+  FilmModelName,
+  ScheduleDocument,
+} from 'src/films/schemas/film.schema';
 
 export interface FilmsRepository {
   findAll(): Promise<FilmDto[]>;
@@ -13,7 +17,9 @@ export const FILMS_REPOSITORY_TOKEN = 'FilmsRepository';
 
 @Injectable()
 export class FilmsMongoDbRepository implements FilmsRepository {
-  constructor(@InjectModel(FilmModelName) private filmModel: Model<FilmDocument>) {}
+  constructor(
+    @InjectModel(FilmModelName) private filmModel: Model<FilmDocument>,
+  ) {}
 
   private mapToFilmDto(film: FilmDocument): FilmDto {
     return {
@@ -26,7 +32,9 @@ export class FilmsMongoDbRepository implements FilmsRepository {
       title: film.title,
       about: film.about,
       description: film.description,
-      schedule: film.schedule.map((sched: ScheduleDocument) => this.mapToScheduleDto(sched)),
+      schedule: film.schedule.map((sched: ScheduleDocument) =>
+        this.mapToScheduleDto(sched),
+      ),
     };
   }
 
@@ -52,6 +60,8 @@ export class FilmsMongoDbRepository implements FilmsRepository {
     if (!film) {
       throw new Error(`Фильм с id ${id} не найден`);
     }
-    return film.schedule.map((sched: ScheduleDocument) => this.mapToScheduleDto(sched));
+    return film.schedule.map((sched: ScheduleDocument) =>
+      this.mapToScheduleDto(sched),
+    );
   }
 }
