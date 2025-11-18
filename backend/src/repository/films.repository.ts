@@ -9,6 +9,8 @@ export interface FilmsRepository {
   getScheduleByFilmId(id: string): Promise<ScheduleDto[]>;
 }
 
+export const FILMS_REPOSITORY_TOKEN = 'FilmsRepository';
+
 @Injectable()
 export class FilmsMongoDbRepository implements FilmsRepository {
   constructor(@InjectModel(FilmModelName) private filmModel: Model<FilmDocument>) {}

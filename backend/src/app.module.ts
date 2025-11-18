@@ -8,7 +8,7 @@ import { OrderController } from './order/order.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { FilmModelName, FilmSchema } from './films/schemas/film.schema';
 import { FilmsService } from './films/films.service';
-import { FilmsMongoDbRepository } from './repository/films.repository';
+import { FilmsMongoDbRepository, FILMS_REPOSITORY_TOKEN } from './repository/films.repository';
 
 @Module({
   imports: [
@@ -24,6 +24,14 @@ import { FilmsMongoDbRepository } from './repository/films.repository';
       })
   ],
   controllers: [FilmsController, OrderController],
-  providers: [configProvider, FilmsService, FilmsMongoDbRepository],
+  providers: [
+    configProvider, 
+    FilmsService, 
+    FilmsMongoDbRepository,
+    {
+      provide: FILMS_REPOSITORY_TOKEN,
+      useClass: FilmsMongoDbRepository,
+    },
+  ],
 })
 export class AppModule {}
