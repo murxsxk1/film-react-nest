@@ -3,20 +3,21 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { randomUUID } from 'node:crypto';
-import { Model } from 'mongoose';
 import { CreateOrderDto, OrderResultDto, TicketDto } from './dto/order.dto';
-import {
-  FilmDocument,
-  FilmModelName,
-  ScheduleDocument,
-} from 'src/films/schemas/film.schema';
+import { FilmEntity } from '../films/entities/film.entity';
+import { ScheduleEntity } from '../films/entities/schedule.entity';
+import { IOrderService } from './order.service.interface';
 
 @Injectable()
-export class OrderService {
+export class OrderPostgresService implements IOrderService {
   constructor(
-    @InjectModel(FilmModelName) private readonly filmModel: Model<FilmDocument>,
+    @InjectRepository(FilmEntity)
+    private readonly filmRepository: Repository<FilmEntity>,
+    @InjectRepository(ScheduleEntity)
+    private readonly scheduleRepository: Repository<ScheduleEntity>,
   ) {}
 
   async createOrder(dto: CreateOrderDto): Promise<OrderResultDto[]> {
@@ -28,14 +29,19 @@ export class OrderService {
     const results: OrderResultDto[] = [];
 
     for (const [, group] of groupedTickets) {
-      const film = await this.filmModel.findOne({ id: group.filmId });
+      const film = await this.filmRepository.findOne({
+        where: { id: group.filmId },
+        relations: ['schedule'],
+      });
+
       if (!film) {
         throw new NotFoundException(`Фильм с id ${group.filmId} не найден`);
       }
 
       const schedule = film.schedule.find(
-        (item: ScheduleDocument) => item.id === group.scheduleId,
+        (item: ScheduleEntity) => item.id === group.scheduleId,
       );
+
       if (!schedule) {
         throw new NotFoundException(`Сеанс с id ${group.scheduleId} не найден`);
       }
@@ -45,12 +51,13 @@ export class OrderService {
       const seatKeys = group.tickets.map((ticket) =>
         this.composeSeatKey(ticket.row, ticket.seat),
       );
+
       this.ensureSeatsAreFree(seatKeys, schedule);
 
       schedule.taken = schedule.taken ?? [];
-      schedule.taken.push(...seatKeys);
+      schedule.taken = [...schedule.taken, ...seatKeys];
 
-      await film.save();
+      await this.scheduleRepository.save(schedule);
 
       results.push(
         ...group.tickets.map((ticket) => ({
@@ -60,7 +67,7 @@ export class OrderService {
           daytime: schedule.daytime,
           row: ticket.row,
           seat: ticket.seat,
-          price: schedule.price,
+          price: Number(schedule.price),
         })),
       );
     }
@@ -83,7 +90,7 @@ export class OrderService {
     }, new Map<string, { filmId: string; scheduleId: string; tickets: TicketDto[] }>());
   }
 
-  private validateTickets(tickets: TicketDto[], schedule: ScheduleDocument) {
+  private validateTickets(tickets: TicketDto[], schedule: ScheduleEntity) {
     tickets.forEach((ticket) => {
       if (ticket.row < 1 || ticket.row > schedule.rows) {
         throw new BadRequestException(
@@ -100,14 +107,16 @@ export class OrderService {
     const seatKeys = tickets.map((ticket) =>
       this.composeSeatKey(ticket.row, ticket.seat),
     );
+
     if (seatKeys.length !== new Set(seatKeys).size) {
       throw new BadRequestException('В заказе обнаружены дублирующиеся места');
     }
   }
 
-  private ensureSeatsAreFree(seatKeys: string[], schedule: ScheduleDocument) {
+  private ensureSeatsAreFree(seatKeys: string[], schedule: ScheduleEntity) {
     const taken = schedule.taken ?? [];
     const alreadyTaken = seatKeys.filter((seat) => taken.includes(seat));
+
     if (alreadyTaken.length > 0) {
       throw new BadRequestException(
         `Места ${alreadyTaken.join(', ')} уже заняты`,

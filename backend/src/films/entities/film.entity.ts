@@ -1,35 +1,35 @@
-import { Column, Entity, OneToMany, PrimaryColumn, } from "typeorm";
-import { ScheduleEntity } from "./schedule.entity";
+import { Column, Entity, OneToMany, PrimaryColumn } from 'typeorm';
+import { ScheduleEntity } from './schedule.entity';
 
 @Entity('films')
 export class FilmEntity {
   @PrimaryColumn()
-  id: string
+  id: string;
 
   @Column()
-  rating: number
+  rating: number;
 
   @Column()
-  director: string
+  director: string;
+
+  @Column('text', { array: true })
+  tags: string[];
 
   @Column()
-  tags: string[]
+  image: string;
 
   @Column()
-  image: string
+  cover: string;
 
   @Column()
-  cover: string
+  title: string;
 
   @Column()
-  title: string
+  about: string;
 
   @Column()
-  about: string
-
-  @Column()
-  description: string
+  description: string;
 
   @OneToMany(() => ScheduleEntity, (schedule) => schedule.film)
-  schedule: ScheduleEntity[]
+  schedule: ScheduleEntity[];
 }
