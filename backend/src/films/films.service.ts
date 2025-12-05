@@ -1,9 +1,10 @@
 import { Injectable, Inject } from '@nestjs/common';
-import {
-  FilmsRepository,
-  FILMS_REPOSITORY_TOKEN,
-} from 'src/repository/films.repository';
+
 import { FilmDto, ScheduleDto } from './dto/films.dto';
+import {
+  FILMS_REPOSITORY_TOKEN,
+  FilmsRepository,
+} from '../repository/films.repository';
 
 @Injectable()
 export class FilmsService {
