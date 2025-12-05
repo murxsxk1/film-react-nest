@@ -21,13 +21,6 @@ export class DatabaseModule {
         .replace(/^["']|["']$/g, '')
         .toLowerCase() || '';
     const correctedDriver = driver === 'postgress' ? 'postgres' : driver;
-
-    console.log('🔌 DATABASE_DRIVER:', correctedDriver);
-    console.log(
-      '📊 Используется БД:',
-      correctedDriver === 'postgres' ? 'PostgreSQL' : 'MongoDB',
-    );
-
     const isPostgres = correctedDriver === 'postgres';
     const isMongo = correctedDriver === 'mongodb';
 
